@@ -43,7 +43,6 @@ jobs:
 
       - name: Build .deb package
         run: |
-          chmod +x scripts/build-deb.sh
           ./scripts/build-deb.sh ${{ steps.release_tag.outputs.tag }}
 
       - name: Upload .deb artifact

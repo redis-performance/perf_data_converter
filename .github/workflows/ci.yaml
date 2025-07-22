@@ -56,7 +56,6 @@ jobs:
 
       - name: Test .deb package build
         run: |
-          chmod +x scripts/build-deb.sh
           ./scripts/build-deb.sh v0.0.0-test
 
       - name: Validate .deb package
