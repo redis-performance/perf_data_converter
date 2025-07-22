@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches:
+    branches: ['**']  # Trigger on any branch
   pull_request:
     branches: [master]
   # Allows for manually triggering workflow runs.
@@ -14,15 +14,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          path: ${{ env.WORKING_DIR }}
+          submodules: recursive
 
       - name: Fetch dependencies
         run: |
           sudo apt-get -qq update
           sudo apt-get install -y libelf-dev libssl-dev libcap-dev linux-tools-`uname -r`
-          git submodule update --init --recursive
 
       - name: Update toolchain
         run: |
