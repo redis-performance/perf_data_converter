@@ -9,8 +9,17 @@ mkdir -p "$OUTDIR"
 echo "Building perf_to_profile with Bazel..."
 bazel build //src:perf_to_profile
 
-# Install FPM
-gem install --no-document fpm
+# Install FPM (skip if FPM_SKIP_INSTALL is set, e.g., in CI)
+if [[ "${FPM_SKIP_INSTALL:-}" != "1" ]]; then
+    if ! command -v fpm &> /dev/null; then
+        echo "Installing FPM..."
+        sudo gem install --no-document fpm
+    else
+        echo "FPM already installed"
+    fi
+else
+    echo "Skipping FPM installation (FPM_SKIP_INSTALL=1)"
+fi
 
 # Create temporary directory for package contents
 TEMP_DIR=$(mktemp -d)

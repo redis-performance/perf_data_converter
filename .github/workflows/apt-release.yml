@@ -43,7 +43,8 @@ jobs:
 
       - name: Build .deb package
         run: |
-          ./scripts/build-deb.sh ${{ steps.release_tag.outputs.tag }}
+          # FPM is already installed in CI, so skip gem install
+          FPM_SKIP_INSTALL=1 ./scripts/build-deb.sh ${{ steps.release_tag.outputs.tag }}
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4

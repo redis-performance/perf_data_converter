@@ -56,7 +56,8 @@ jobs:
 
       - name: Test .deb package build
         run: |
-          ./scripts/build-deb.sh v0.0.0-test
+          # FPM is already installed in CI, so skip gem install
+          FPM_SKIP_INSTALL=1 ./scripts/build-deb.sh v0.0.0-test
 
       - name: Validate .deb package
         run: |
