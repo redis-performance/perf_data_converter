@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [copybara_staging]
+    branches:
   pull_request:
     branches: [master]
   # Allows for manually triggering workflow runs.
