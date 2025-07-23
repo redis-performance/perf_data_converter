@@ -5,9 +5,9 @@ VERSION=$1            # e.g. "v1.2.3"
 OUTDIR="$PWD/artifacts"
 mkdir -p "$OUTDIR"
 
-# Build the project with Bazel
+# Build the project with Bazel (with static linking for better compatibility)
 echo "Building perf_to_profile with Bazel..."
-bazel build //src:perf_to_profile
+bazel build --config=opt --linkopt=-static-libgcc --linkopt=-static-libstdc++ //src:perf_to_profile
 
 # Install FPM (skip if FPM_SKIP_INSTALL is set, e.g., in CI)
 if [[ "${FPM_SKIP_INSTALL:-}" != "1" ]]; then

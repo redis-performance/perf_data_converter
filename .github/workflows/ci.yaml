@@ -11,7 +11,7 @@ on:
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobs
 jobs:
   build-and-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout the repo
         uses: actions/checkout@v4
@@ -38,7 +38,7 @@ jobs:
         run: bazel test //src:all //src/quipper:all
 
   test-deb-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -94,7 +94,7 @@ jobs:
           retention-days: 7
 
   test-apt-scripts:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: test-deb-build
     steps:
       - name: Checkout code
