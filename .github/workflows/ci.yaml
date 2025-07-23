@@ -92,3 +92,84 @@ jobs:
           name: test-deb-package
           path: artifacts/*.deb
           retention-days: 7
+
+  test-apt-scripts:
+    runs-on: ubuntu-latest
+    needs: test-deb-build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install reprepro
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y reprepro
+
+      - name: Download test .deb package
+        uses: actions/download-artifact@v4
+        with:
+          name: test-deb-package
+          path: ./test-artifacts
+
+      - name: Test setup-apt-repo.sh script
+        run: |
+          echo "Testing setup-apt-repo.sh script..."
+          ./scripts/setup-apt-repo.sh
+
+          # Verify directories were created
+          test -d conf
+          test -d pool/main/p/perf-data-converter
+          test -d dists
+
+          # Verify configuration file was created
+          test -f conf/distributions
+
+          # Verify configuration content
+          grep -q "Codename: focal" conf/distributions
+          grep -q "Codename: jammy" conf/distributions
+          grep -q "Codename: noble" conf/distributions
+
+          echo "✅ setup-apt-repo.sh test passed!"
+
+      - name: Test update-apt-repo.sh script
+        run: |
+          echo "Testing update-apt-repo.sh script..."
+
+          # Copy test package to expected location
+          mkdir -p artifacts
+          cp test-artifacts/*.deb artifacts/
+
+          # Run the update script
+          ./scripts/update-apt-repo.sh artifacts
+
+          # Verify packages were moved to pool
+          test -f pool/main/p/perf-data-converter/*.deb
+
+          # Verify repository metadata was created
+          test -d dists/focal
+          test -d dists/jammy
+          test -d dists/noble
+
+          # Verify Packages files were created
+          find dists/ -name "Packages*" | grep -q "Packages"
+
+          # Verify Release files were created
+          find dists/ -name "Release" | grep -q "Release"
+
+          echo "✅ update-apt-repo.sh test passed!"
+
+      - name: Test repository integrity
+        run: |
+          echo "Testing repository integrity..."
+
+          # Test reprepro list command
+          reprepro -b . list focal
+          reprepro -b . list jammy
+          reprepro -b . list noble
+
+          # Verify package is listed in all suites
+          reprepro -b . list focal | grep -q "perf-data-converter"
+          reprepro -b . list jammy | grep -q "perf-data-converter"
+          reprepro -b . list noble | grep -q "perf-data-converter"
+
+          echo "✅ Repository integrity test passed!"

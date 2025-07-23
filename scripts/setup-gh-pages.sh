@@ -44,19 +44,27 @@ mkdir -p conf pool/main/p/perf-data-converter dists
 cat > conf/distributions << 'EOF'
 Origin: perf_data_converter
 Label: perf_data_converter
+Codename: focal
 Architectures: amd64 arm64 all
 Components: main
 Description: perf data converter APT repository
 SignWith: no
 
-Codename: focal
-Suite: focal
-
+Origin: perf_data_converter
+Label: perf_data_converter
 Codename: jammy
-Suite: jammy
+Architectures: amd64 arm64 all
+Components: main
+Description: perf data converter APT repository
+SignWith: no
 
+Origin: perf_data_converter
+Label: perf_data_converter
 Codename: noble
-Suite: noble
+Architectures: amd64 arm64 all
+Components: main
+Description: perf data converter APT repository
+SignWith: no
 EOF
 
 # Create a README for the gh-pages branch

@@ -17,3 +17,8 @@ unit_tests
 integration_tests
 perf_recorder_test
 bazel-*
+MODULE.bazel.lock
+
+# apt repo related
+conf/*
+pool/*
