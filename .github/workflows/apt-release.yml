@@ -76,38 +76,76 @@ jobs:
 
       - name: Set up repository structure
         run: |
-          # Create directories if they don't exist
+          # Create the setup script inline (self-contained)
+          cat > setup-apt-repo.sh << 'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          echo "Setting up APT repository structure..."
           mkdir -p conf pool/main/p/perf-data-converter dists
-          
-          # Create reprepro configuration
-          cat > conf/distributions << 'EOF'
+          cat > conf/distributions << 'DISTEOF'
           Origin: perf_data_converter
           Label: perf_data_converter
-          Architectures: amd64 arm64 all
+          Codename: focal
+          Architectures: amd64 arm64
           Components: main
           Description: perf data converter APT repository
-          SignWith: no
-          
-          Codename: focal
-          Suite: focal
-          
+
+          Origin: perf_data_converter
+          Label: perf_data_converter
           Codename: jammy
-          Suite: jammy
-          
+          Architectures: amd64 arm64
+          Components: main
+          Description: perf data converter APT repository
+
+          Origin: perf_data_converter
+          Label: perf_data_converter
           Codename: noble
-          Suite: noble
+          Architectures: amd64 arm64
+          Components: main
+          Description: perf data converter APT repository
+          DISTEOF
+          echo "APT repository structure setup complete!"
           EOF
+          chmod +x setup-apt-repo.sh
+          ./setup-apt-repo.sh
 
-      - name: Move .deb files to pool
+      - name: Update repository with packages
         run: |
-          mv artifacts/*.deb pool/main/p/perf-data-converter/
+          # Create the update script inline (self-contained)
+          cat > update-apt-repo.sh << 'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          ARTIFACTS_DIR="${1:-./artifacts}"
+          echo "Updating APT repository with packages from: $ARTIFACTS_DIR"
 
-      - name: Update repository for each suite
-        run: |
+          if [[ ! -d "$ARTIFACTS_DIR" ]]; then
+              echo "Error: Artifacts directory '$ARTIFACTS_DIR' does not exist"
+              exit 1
+          fi
+
+          DEB_FILES=("$ARTIFACTS_DIR"/*.deb)
+          if [[ ! -e "${DEB_FILES[0]}" ]]; then
+              echo "Error: No .deb files found in '$ARTIFACTS_DIR'"
+              exit 1
+          fi
+
+          echo "Found .deb files:"
+          ls -la "$ARTIFACTS_DIR"/*.deb
+
+          echo "Moving .deb files to pool..."
+          mkdir -p pool/main/p/perf-data-converter
+          mv "$ARTIFACTS_DIR"/*.deb pool/main/p/perf-data-converter/
+
+          echo "Updating repository for each suite..."
           for suite in focal jammy noble; do
-            echo "Processing suite: $suite"
-            reprepro -b . includedeb $suite pool/main/p/perf-data-converter/*.deb
+              echo "Processing suite: $suite"
+              reprepro -b . --ignore=wrongdistribution includedeb "$suite" pool/main/p/perf-data-converter/*.deb
           done
+
+          echo "APT repository update complete!"
+          EOF
+          chmod +x update-apt-repo.sh
+          ./update-apt-repo.sh artifacts
 
       - name: Commit and push changes
         run: |
