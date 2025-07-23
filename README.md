@@ -10,7 +10,30 @@ For details on pprof, see https://github.com/google/pprof
 
 **THIS IS NOT AN OFFICIAL GOOGLE PRODUCT**
 
-# Prerequisites to build
+# Installation
+
+## Option 1: APT Repository (Recommended for Ubuntu users)
+
+For Ubuntu 20.04, 22.04, and 24.04 users, you can install `perf_data_converter` directly from our APT repository:
+
+```bash
+# Add the APT repository
+echo "deb [trusted=yes] https://redis-performance.github.io/perf_data_converter focal main" | sudo tee /etc/apt/sources.list.d/perf_data_converter.list
+echo "deb [trusted=yes] https://redis-performance.github.io/perf_data_converter jammy main" | sudo tee -a /etc/apt/sources.list.d/perf_data_converter.list
+echo "deb [trusted=yes] https://redis-performance.github.io/perf_data_converter noble main" | sudo tee -a /etc/apt/sources.list.d/perf_data_converter.list
+
+# Update and install
+sudo apt-get update
+sudo apt-get install perf-data-converter
+```
+
+The binary will be installed as `/usr/local/bin/perf_to_profile`.
+
+For detailed APT repository documentation, see [docs/APT_REPOSITORY.md](docs/APT_REPOSITORY.md).
+
+## Option 2: Build from Source
+
+### Prerequisites to build
 * Install dependencies
 
   ```
@@ -18,7 +41,7 @@ For details on pprof, see https://github.com/google/pprof
   ```
 * At least g++-5 or clang-7
 
-# Compile and Test
+### Compile and Test
 To install all dependences and build the binary, run the following commands.
 These were tested on Ubuntu 14.04 LTS:
 
@@ -58,6 +81,13 @@ directory `bazel-bin/`.
 
   ```
   pprof -web perf.data
+  ```
+
+* If you installed via APT, you can also use:
+
+  ```
+  perf_to_profile -i perf.data -o profile.pb
+  pprof -web profile.pb
   ```
 
 # Contribution

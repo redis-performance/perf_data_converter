@@ -1,0 +1,161 @@
+name: APT Repository Release
+
+on:
+  release:
+    types: [published]
+  # Allow manual triggering for testing
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., v1.2.3)'
+        required: true
+        type: string
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y libelf-dev libssl-dev libcap-dev ruby-dev build-essential
+          
+      - name: Install FPM
+        run: |
+          sudo gem install fpm
+
+      - name: Set release tag
+        id: release_tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build .deb package
+        run: |
+          # FPM is already installed in CI, so skip gem install
+          FPM_SKIP_INSTALL=1 ./scripts/build-deb.sh ${{ steps.release_tag.outputs.tag }}
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: artifacts/*.deb
+          retention-days: 30
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install reprepro
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y reprepro
+
+      - name: Download .deb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: deb-package
+          path: ./artifacts
+
+      - name: Set up repository structure
+        run: |
+          # Create directories if they don't exist
+          mkdir -p conf pool/main/p/perf-data-converter dists
+          
+          # Create reprepro configuration
+          cat > conf/distributions << 'EOF'
+          Origin: perf_data_converter
+          Label: perf_data_converter
+          Architectures: amd64 arm64 all
+          Components: main
+          Description: perf data converter APT repository
+          SignWith: no
+          
+          Codename: focal
+          Suite: focal
+          
+          Codename: jammy
+          Suite: jammy
+          
+          Codename: noble
+          Suite: noble
+          EOF
+
+      - name: Move .deb files to pool
+        run: |
+          mv artifacts/*.deb pool/main/p/perf-data-converter/
+
+      - name: Update repository for each suite
+        run: |
+          for suite in focal jammy noble; do
+            echo "Processing suite: $suite"
+            reprepro -b . includedeb $suite pool/main/p/perf-data-converter/*.deb
+          done
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update APT repository with new package"
+            git push
+          fi
+
+  test:
+    needs: publish
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distro: ['20.04', '22.04', '24.04']
+        arch: ['amd64', 'arm64']
+    steps:
+      - name: Test package installation
+        run: |
+          # Map Ubuntu versions to codenames
+          case "${{ matrix.distro }}" in
+            "20.04") CODENAME="focal" ;;
+            "22.04") CODENAME="jammy" ;;
+            "24.04") CODENAME="noble" ;;
+            *) echo "Unknown distro version"; exit 1 ;;
+          esac
+
+          # Create and run Docker container
+          docker run --rm --platform linux/${{ matrix.arch }} ubuntu:${{ matrix.distro }} bash -c "
+            set -e
+            apt-get update
+            apt-get install -y apt-transport-https gnupg curl
+
+            # Add our APT repository
+            echo 'deb [trusted=yes] https://redis-performance.github.io/perf_data_converter focal main' > /etc/apt/sources.list.d/perf_data_converter.list
+            echo 'deb [trusted=yes] https://redis-performance.github.io/perf_data_converter jammy main' >> /etc/apt/sources.list.d/perf_data_converter.list
+            echo 'deb [trusted=yes] https://redis-performance.github.io/perf_data_converter noble main' >> /etc/apt/sources.list.d/perf_data_converter.list
+
+            # Update package list and install our package
+            apt-get update
+            apt-get install -y perf-data-converter
+
+            # Test that the binary works
+            perf-data-converter --help || /usr/local/bin/perf_to_profile --help
+
+            echo 'Package installation and basic functionality test passed!'
+          "

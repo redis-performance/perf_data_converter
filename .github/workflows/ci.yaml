@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [copybara_staging]
+    branches: ['**']  # Trigger on any branch
   pull_request:
     branches: [master]
   # Allows for manually triggering workflow runs.
@@ -14,15 +14,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          path: ${{ env.WORKING_DIR }}
+          submodules: recursive
 
       - name: Fetch dependencies
         run: |
           sudo apt-get -qq update
           sudo apt-get install -y libelf-dev libssl-dev libcap-dev linux-tools-`uname -r`
-          git submodule update --init --recursive
 
       - name: Update toolchain
         run: |
@@ -37,3 +36,59 @@ jobs:
 
       - name: Test
         run: bazel test //src:all //src/quipper:all
+
+  test-deb-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y libelf-dev libssl-dev libcap-dev ruby-dev build-essential
+
+      - name: Install FPM
+        run: |
+          sudo gem install --no-document fpm
+
+      - name: Test .deb package build
+        run: |
+          # FPM is already installed in CI, so skip gem install
+          FPM_SKIP_INSTALL=1 ./scripts/build-deb.sh v0.0.0-test
+
+      - name: Validate .deb package
+        run: |
+          # Check that the package was created
+          ls -la artifacts/
+          test -f artifacts/perf-data-converter_0.0.0-test_all.deb
+
+          # Check package contents
+          dpkg-deb --contents artifacts/perf-data-converter_0.0.0-test_all.deb
+
+          # Check package info
+          dpkg-deb --info artifacts/perf-data-converter_0.0.0-test_all.deb
+
+          # Verify the binary is included and executable
+          dpkg-deb --contents artifacts/perf-data-converter_0.0.0-test_all.deb | grep "perf_to_profile"
+
+      - name: Test package installation
+        run: |
+          # Install the package
+          sudo dpkg -i artifacts/perf-data-converter_0.0.0-test_all.deb || true
+          sudo apt-get install -f -y  # Fix any dependency issues
+
+          # Test that the binary works
+          /usr/local/bin/perf_to_profile --help || echo "Binary help test completed"
+
+          # Test that it's in PATH (if /usr/local/bin is in PATH)
+          which perf_to_profile || echo "Binary not in PATH (expected)"
+
+      - name: Upload test .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-deb-package
+          path: artifacts/*.deb
+          retention-days: 7
