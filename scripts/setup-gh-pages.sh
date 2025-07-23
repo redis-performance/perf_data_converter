@@ -45,7 +45,7 @@ cat > conf/distributions << 'EOF'
 Origin: perf_data_converter
 Label: perf_data_converter
 Codename: focal
-Architectures: amd64 arm64 all
+Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
 SignWith: no
@@ -53,7 +53,7 @@ SignWith: no
 Origin: perf_data_converter
 Label: perf_data_converter
 Codename: jammy
-Architectures: amd64 arm64 all
+Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
 SignWith: no
@@ -61,7 +61,7 @@ SignWith: no
 Origin: perf_data_converter
 Label: perf_data_converter
 Codename: noble
-Architectures: amd64 arm64 all
+Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
 SignWith: no
