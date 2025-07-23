@@ -89,7 +89,6 @@ jobs:
           Architectures: amd64 arm64
           Components: main
           Description: perf data converter APT repository
-          SignWith: no
 
           Origin: perf_data_converter
           Label: perf_data_converter
@@ -97,7 +96,6 @@ jobs:
           Architectures: amd64 arm64
           Components: main
           Description: perf data converter APT repository
-          SignWith: no
 
           Origin: perf_data_converter
           Label: perf_data_converter
@@ -105,7 +103,6 @@ jobs:
           Architectures: amd64 arm64
           Components: main
           Description: perf data converter APT repository
-          SignWith: no
           DISTEOF
           echo "APT repository structure setup complete!"
           EOF
@@ -142,7 +139,7 @@ jobs:
           echo "Updating repository for each suite..."
           for suite in focal jammy noble; do
               echo "Processing suite: $suite"
-              reprepro -b . includedeb "$suite" pool/main/p/perf-data-converter/*.deb
+              reprepro -b . --ignore=wrongdistribution includedeb "$suite" pool/main/p/perf-data-converter/*.deb
           done
 
           echo "APT repository update complete!"

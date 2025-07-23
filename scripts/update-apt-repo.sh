@@ -33,7 +33,7 @@ mv "$ARTIFACTS_DIR"/*.deb pool/main/p/perf-data-converter/
 echo "Updating repository for each suite..."
 for suite in focal jammy noble; do
     echo "Processing suite: $suite"
-    reprepro -b . includedeb "$suite" pool/main/p/perf-data-converter/*.deb
+    reprepro -b . --ignore=wrongdistribution includedeb "$suite" pool/main/p/perf-data-converter/*.deb
 done
 
 echo "APT repository update complete!"

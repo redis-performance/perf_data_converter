@@ -48,7 +48,6 @@ Codename: focal
 Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
-SignWith: no
 
 Origin: perf_data_converter
 Label: perf_data_converter
@@ -56,7 +55,6 @@ Codename: jammy
 Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
-SignWith: no
 
 Origin: perf_data_converter
 Label: perf_data_converter
@@ -64,7 +62,6 @@ Codename: noble
 Architectures: amd64 arm64
 Components: main
 Description: perf data converter APT repository
-SignWith: no
 EOF
 
 # Create a README for the gh-pages branch
