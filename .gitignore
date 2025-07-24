@@ -1,0 +1,10 @@
+# Bazel artifacts (symlinks that cause Jekyll issues)
+bazel-*
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE files
+.vscode/
+.idea/

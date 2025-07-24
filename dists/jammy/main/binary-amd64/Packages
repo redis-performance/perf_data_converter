@@ -1,0 +1,18 @@
+Package: perf-data-converter
+Version: 0.0.8-test
+License: Apache-2.0
+Vendor: Redis Performance Team
+Architecture: all
+Maintainer: redis-performance@redis.com
+Installed-Size: 2416
+Depends: libc6, libelf1, libcap2
+Homepage: https://github.com/redis-performance/perf_data_converter
+Priority: optional
+Section: default
+Filename: pool/main/p/perf-data-converter/perf-data-converter_0.0.8-test_all.deb
+Size: 1050900
+SHA256: 7b64cf748fe79622082836f9d51af071ba67439a0889345f3aa499f3df47f75e
+SHA1: d531a0f1b9d3ab9b6908b358f50ccc06c854e0e8
+MD5sum: 44d61ca3a70fcbbd2bbd3cb3fb646205
+Description: Convert perf.data files to profile.proto format for use with pprof
+
