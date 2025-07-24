@@ -31,6 +31,9 @@ jobs:
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 1
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 1
 
+      - name: Generate version information
+        run: ./scripts/generate-version.sh
+
       - name: Build
         run: bazel build //src:all //src/quipper:all
 

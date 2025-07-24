@@ -9,6 +9,9 @@
 
 #include <sys/stat.h>
 #include <sstream>
+#include <getopt.h>
+
+#include "src/version.h"
 
 bool FileExists(const std::string& path) {
   struct stat file_stat;
@@ -57,6 +60,11 @@ void PrintUsage() {
             << "profile.";
   LOG(INFO) << "If the -j option is given, allow unaligned MMAP events "
             << "required by perf data from VMs with JITs.";
+  LOG(INFO) << "Use --version to print version information.";
+}
+
+void PrintVersion() {
+  LOG(INFO) << "perf_to_profile version " << PERF_TO_PROFILE_VERSION;
 }
 
 bool ParseArguments(int argc, const char* argv[], std::string* input,
@@ -66,9 +74,17 @@ bool ParseArguments(int argc, const char* argv[], std::string* input,
   *output = "";
   *overwrite_output = false;
   *allow_unaligned_jit_mappings = false;
+
+  // Define long options
+  static struct option long_options[] = {
+    {"version", no_argument, 0, 'v'},
+    {0, 0, 0, 0}
+  };
+
   int opt;
-  while ((opt = getopt(argc, const_cast<char* const*>(argv), ":jfi:o:")) !=
-         -1) {
+  int option_index = 0;
+  while ((opt = getopt_long(argc, const_cast<char* const*>(argv), ":jfi:o:",
+                           long_options, &option_index)) != -1) {
     switch (opt) {
       case 'i':
         *input = optarg;
@@ -81,6 +97,10 @@ bool ParseArguments(int argc, const char* argv[], std::string* input,
         break;
       case 'j':
         *allow_unaligned_jit_mappings = true;
+        break;
+      case 'v':  // --version
+        PrintVersion();
+        exit(EXIT_SUCCESS);
         break;
       case ':':
         LOG(ERROR) << "Must provide arguments for flags -i and -o";

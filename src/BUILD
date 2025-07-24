@@ -131,7 +131,10 @@ cc_test(
 cc_library(
     name = "perf_to_profile_lib",
     srcs = ["perf_to_profile_lib.cc"],
-    hdrs = ["perf_to_profile_lib.h"],
+    hdrs = [
+        "perf_to_profile_lib.h",
+        "version.h",
+    ],
     deps = [
         ":perf_data_converter",
         "//src/quipper:base",
