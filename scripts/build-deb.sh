@@ -8,12 +8,9 @@ mkdir -p "$OUTDIR"
 # Build the project with Bazel (with static linking for better compatibility)
 echo "Building perf_to_profile with Bazel..."
 bazel build \
-    --config=opt \
+    --compilation_mode=opt \
     --linkopt=-static-libgcc \
     --linkopt=-static-libstdc++ \
-    --linkopt=-Wl,--as-needed \
-    --copt=-march=x86-64 \
-    --copt=-mtune=generic \
     //src:perf_to_profile
 
 # Install FPM (skip if FPM_SKIP_INSTALL is set, e.g., in CI)
