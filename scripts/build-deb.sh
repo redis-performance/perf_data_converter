@@ -33,11 +33,12 @@ mkdir -p "$BIN_DIR"
 # Copy the Bazel-built binary to the temporary directory
 cp bazel-bin/src/perf_to_profile "$BIN_DIR/"
 
-# Strip the binary to reduce size and remove debug symbols
-strip "$BIN_DIR/perf_to_profile"
-
-# Make sure the binary is executable
+# Make sure the binary is writable and executable before stripping
+chmod u+w "$BIN_DIR/perf_to_profile"
 chmod +x "$BIN_DIR/perf_to_profile"
+
+# Strip the binary to reduce size and remove debug symbols
+strip "$BIN_DIR/perf_to_profile" || echo "Warning: Could not strip binary (not critical)"
 
 # Check binary dependencies for debugging
 echo "Binary dependencies:"
