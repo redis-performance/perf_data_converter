@@ -43,4 +43,7 @@ bool ParseArguments(int argc, const char* argv[], std::string* input,
 // Prints the usage of the tool.
 void PrintUsage();
 
+// Prints the version of the tool.
+void PrintVersion();
+
 #endif  // PERFTOOLS_PERF_TO_PROFILE_LIB_H_
