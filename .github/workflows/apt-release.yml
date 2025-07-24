@@ -83,6 +83,23 @@ jobs:
 
       - name: Set up repository structure
         run: |
+          # Create .nojekyll file to disable Jekyll processing
+          touch .nojekyll
+
+          # Create .gitignore for gh-pages branch to ignore problematic files
+          cat > .gitignore << 'GITEOF'
+          # Bazel artifacts (symlinks that cause Jekyll issues)
+          bazel-*
+
+          # Temporary files
+          *.tmp
+          *.log
+
+          # IDE files
+          .vscode/
+          .idea/
+          GITEOF
+
           # Create the setup script inline (self-contained)
           cat > setup-apt-repo.sh << 'EOF'
           #!/usr/bin/env bash

@@ -40,6 +40,9 @@ git rm -rf . 2>/dev/null || true
 echo "Creating APT repository structure..."
 mkdir -p conf pool/main/p/perf-data-converter dists
 
+# Create .nojekyll file to disable Jekyll processing
+touch .nojekyll
+
 # Create initial reprepro configuration
 cat > conf/distributions << 'EOF'
 Origin: perf_data_converter

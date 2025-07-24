@@ -9,6 +9,9 @@ echo "Setting up APT repository structure..."
 # Create directories if they don't exist
 mkdir -p conf pool/main/p/perf-data-converter dists
 
+# Create .nojekyll file to disable Jekyll processing on GitHub Pages
+touch .nojekyll
+
 echo "Creating reprepro configuration..."
 
 # Create reprepro configuration with separate distribution blocks
