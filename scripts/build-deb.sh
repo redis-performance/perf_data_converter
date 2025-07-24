@@ -7,7 +7,11 @@ mkdir -p "$OUTDIR"
 
 # Build the project with Bazel (with static linking for better compatibility)
 echo "Building perf_to_profile with Bazel..."
-bazel build --config=opt --linkopt=-static-libgcc --linkopt=-static-libstdc++ //src:perf_to_profile
+bazel build \
+    --compilation_mode=opt \
+    --linkopt=-static-libgcc \
+    --linkopt=-static-libstdc++ \
+    //src:perf_to_profile
 
 # Install FPM (skip if FPM_SKIP_INSTALL is set, e.g., in CI)
 if [[ "${FPM_SKIP_INSTALL:-}" != "1" ]]; then
@@ -28,7 +32,17 @@ mkdir -p "$BIN_DIR"
 
 # Copy the Bazel-built binary to the temporary directory
 cp bazel-bin/src/perf_to_profile "$BIN_DIR/"
+
+# Make sure the binary is writable and executable before stripping
+chmod u+w "$BIN_DIR/perf_to_profile"
 chmod +x "$BIN_DIR/perf_to_profile"
+
+# Strip the binary to reduce size and remove debug symbols
+strip "$BIN_DIR/perf_to_profile" || echo "Warning: Could not strip binary (not critical)"
+
+# Check binary dependencies for debugging
+echo "Binary dependencies:"
+ldd "$BIN_DIR/perf_to_profile" || echo "Static binary (no dynamic dependencies)"
 
 # Create the .deb package using FPM
 fpm -s dir -t deb \
