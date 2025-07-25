@@ -1,6 +1,6 @@
 # Require c++17 for c++ files.
-build --cxxopt='-xc++'
 build --cxxopt='-std=c++17'
+build --host_cxxopt='-std=c++17'
 build --copt='-Wno-sign-compare'
 
 # Enable Bzlmod, a new external dependency management system. Bzlmod is on by
@@ -12,6 +12,33 @@ common --enable_bzlmod
 # They are not actionable and just create noise.
 build --per_file_copt=external/.*@-w
 build --host_per_file_copt=external/.*@-w
+
+# Fix for absolute path inclusion errors with GCC headers
+build --copt=-fno-canonical-system-headers
+build --host_copt=-fno-canonical-system-headers
+
+# Static linking configuration for better compatibility across Ubuntu versions
+# This config can be used with: bazel build --config=static //src:perf_to_profile
+build:static --linkopt=-static
+build:static --linkopt=-static-libgcc
+build:static --linkopt=-static-libstdc++
+# Force static linking of system libraries
+build:static --linkopt=-Wl,-Bstatic
+build:static --linkopt=-lelf
+build:static --linkopt=-lcap
+build:static --linkopt=-Wl,-Bdynamic
+# Ensure we link against static versions of C++ standard library
+build:static --cxxopt=-static-libgcc
+build:static --cxxopt=-static-libstdc++
+
+# Alternative partial static linking (for when full static doesn't work)
+# This config can be used with: bazel build --config=partial-static //src:perf_to_profile
+build:partial-static --linkopt=-static-libgcc
+build:partial-static --linkopt=-static-libstdc++
+build:partial-static --linkopt=-Wl,-Bstatic
+build:partial-static --linkopt=-lelf
+build:partial-static --linkopt=-lcap
+build:partial-static --linkopt=-Wl,-Bdynamic
 
 # Load user-specific configuration, if any.
 try-import %workspace%/user.bazelrc

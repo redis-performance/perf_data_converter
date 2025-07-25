@@ -11,11 +11,30 @@ echo "Generating version information..."
 
 # Build the project with Bazel (with static linking for better compatibility)
 echo "Building perf_to_profile with Bazel..."
-bazel build \
+
+# Try full static linking first, fall back to partial static if it fails
+echo "Attempting full static linking..."
+if bazel build \
     --compilation_mode=opt \
-    --linkopt=-static-libgcc \
-    --linkopt=-static-libstdc++ \
-    //src:perf_to_profile
+    --config=static \
+    //src:perf_to_profile 2>/dev/null; then
+    echo "✅ Full static linking successful"
+else
+    echo "⚠️  Full static linking failed, trying partial static linking..."
+    if bazel build \
+        --compilation_mode=opt \
+        --config=partial-static \
+        //src:perf_to_profile; then
+        echo "✅ Partial static linking successful"
+    else
+        echo "❌ Both static linking approaches failed, falling back to default build..."
+        bazel build \
+            --compilation_mode=opt \
+            --linkopt=-static-libgcc \
+            --linkopt=-static-libstdc++ \
+            //src:perf_to_profile
+    fi
+fi
 
 # Install FPM (skip if FPM_SKIP_INSTALL is set, e.g., in CI)
 if [[ "${FPM_SKIP_INSTALL:-}" != "1" ]]; then
@@ -48,6 +67,28 @@ strip "$BIN_DIR/perf_to_profile" || echo "Warning: Could not strip binary (not c
 echo "Binary dependencies:"
 ldd "$BIN_DIR/perf_to_profile" || echo "Static binary (no dynamic dependencies)"
 
+# Determine package dependencies based on binary linking
+DEPENDS_ARGS=""
+if ldd "$BIN_DIR/perf_to_profile" >/dev/null 2>&1; then
+    echo "Binary has dynamic dependencies, adding package dependencies..."
+    # Check which libraries are dynamically linked and add appropriate dependencies
+    if ldd "$BIN_DIR/perf_to_profile" | grep -q "libc\.so"; then
+        DEPENDS_ARGS="$DEPENDS_ARGS --depends libc6"
+    fi
+    if ldd "$BIN_DIR/perf_to_profile" | grep -q "libelf"; then
+        DEPENDS_ARGS="$DEPENDS_ARGS --depends libelf1"
+    fi
+    if ldd "$BIN_DIR/perf_to_profile" | grep -q "libcap"; then
+        DEPENDS_ARGS="$DEPENDS_ARGS --depends libcap2"
+    fi
+else
+    echo "Static binary detected, minimal dependencies required"
+    # Even static binaries typically need basic libc for system calls
+    DEPENDS_ARGS="--depends libc6"
+fi
+
+echo "Package dependencies: $DEPENDS_ARGS"
+
 # Create the .deb package using FPM
 fpm -s dir -t deb \
     -n perf-data-converter \
@@ -58,9 +99,7 @@ fpm -s dir -t deb \
     --license "Apache-2.0" \
     --vendor "Redis Performance Team" \
     --maintainer "redis-performance@redis.com" \
-    --depends "libc6" \
-    --depends "libelf1" \
-    --depends "libcap2" \
+    $DEPENDS_ARGS \
     --package "$OUTDIR/perf-data-converter_${VERSION#v}_all.deb" \
     --chdir "$TEMP_DIR" \
     usr
