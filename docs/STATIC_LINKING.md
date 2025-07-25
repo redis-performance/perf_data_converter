@@ -1,6 +1,6 @@
 # Static Linking for Cross-Ubuntu Compatibility
 
-This document explains the static linking approach used to ensure the `perf_to_profile` binary works across different Ubuntu versions (20.04, 22.04, 24.04).
+This document explains the static linking approach used to ensure the `perf_to_profile` binary works across different Ubuntu versions (22.04, 24.04).
 
 ## Problem
 
@@ -75,13 +75,13 @@ bazel build --config=static //src:perf_to_profile
 ./scripts/test-compatibility.sh
 ```
 
-This script tests the binary on Ubuntu 20.04, 22.04, and 24.04 using Docker.
+This script tests the binary on Ubuntu 22.04 and 24.04 using Docker.
 
 ## CI/CD Changes
 
 The CI pipeline now:
 
-1. **Builds on Ubuntu 20.04** for maximum compatibility
+1. **Builds on Ubuntu 22.04** as the default build environment
 2. **Uses static linking configurations** automatically
 3. **Tests on multiple Ubuntu versions** to verify compatibility
 
@@ -123,7 +123,7 @@ The CI pipeline now:
 
 ## Benefits
 
-- ✅ **Cross-version compatibility**: Works on Ubuntu 20.04, 22.04, 24.04
+- ✅ **Cross-version compatibility**: Works on Ubuntu 22.04, 24.04
 - ✅ **Reduced dependencies**: Fewer package dependencies
 - ✅ **Easier deployment**: Self-contained binary
 - ✅ **Automated fallback**: Build script handles different linking approaches

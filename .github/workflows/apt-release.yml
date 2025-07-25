@@ -199,7 +199,6 @@ jobs:
         run: |
           # Map Ubuntu versions to codenames
           case "${{ matrix.distro }}" in
-            "20.04") CODENAME="focal" ;;
             "22.04") CODENAME="jammy" ;;
             "24.04") CODENAME="noble" ;;
             *) echo "Unknown distro version"; exit 1 ;;

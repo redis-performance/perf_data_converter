@@ -16,6 +16,11 @@ build --host_per_file_copt=external/.*@-w
 # Fix for absolute path inclusion errors with GCC headers
 build --copt=-fno-canonical-system-headers
 build --host_copt=-fno-canonical-system-headers
+build --cxxopt=-fno-canonical-system-headers
+build --host_cxxopt=-fno-canonical-system-headers
+# Disable sandboxing for compilation to avoid path issues
+build --spawn_strategy=local
+build --strategy=CppCompile=local
 
 # Static linking configuration for better compatibility across Ubuntu versions
 # This config can be used with: bazel build --config=static //src:perf_to_profile
