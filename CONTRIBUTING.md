@@ -7,8 +7,6 @@ We treat this repo as "Open Source" within Redis: anyone who clears the bar belo
 ```bash
 git clone git@github.com:redis-performance/perf_data_converter.git
 cd perf_data_converter
-git submodule init
-git submodule update
 
 # Install system dependencies (Ubuntu/Debian)
 sudo apt-get -y install g++ git libelf-dev libssl-dev libcap-dev linux-tools-$(uname -r)
