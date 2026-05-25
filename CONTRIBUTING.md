@@ -34,7 +34,7 @@ The compiled `perf_to_profile` binary will be available under `bazel-bin/src/per
 
 Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
 
-Example: `feat/add-pipeline-mode`
+Example: `fix/perf-data-parser-overflow`
 
 ## Coding standards
 
