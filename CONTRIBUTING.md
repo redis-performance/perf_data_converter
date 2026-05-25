@@ -4,14 +4,27 @@ We treat this repo as "Open Source" within Redis: anyone who clears the bar belo
 
 ## Local setup
 
-<!-- TODO: fill in repo-specific setup steps -->
-
 ```bash
-# Example — replace with actual steps
-git clone git@github.com:redis-performance/<repo>.git
-cd <repo>
-# install dependencies, build, etc.
+git clone git@github.com:redis-performance/perf_data_converter.git
+cd perf_data_converter
+git submodule init
+git submodule update
+
+# Install system dependencies (Ubuntu/Debian)
+sudo apt-get -y install g++ git libelf-dev libssl-dev libcap-dev linux-tools-$(uname -r)
+
+# Install Bazel by following the instructions at:
+# https://docs.bazel.build/versions/master/install.html
+# (Bazelisk is the recommended approach)
+
+# Generate version information
+./scripts/generate-version.sh
+
+# Build the main binary and all targets
+bazel build //src:all //src/quipper:all
 ```
+
+The compiled `perf_to_profile` binary will be available under `bazel-bin/src/perf_to_profile`.
 
 ## Branch naming
 
@@ -31,9 +44,9 @@ Example: `feat/add-pipeline-mode`
 
 ## Submitting changes
 
-1. Fork or create a branch from `main`.
+1. Fork or create a branch from `master`.
 2. Make your changes with clear, atomic commits.
-3. Open a pull request against `main` with a descriptive title and summary.
+3. Open a pull request against `master` with a descriptive title and summary.
 4. Address review comments promptly; force-push to the same branch to update.
 
 ## Testing
@@ -42,7 +55,11 @@ Example: `feat/add-pipeline-mode`
 - Existing tests must pass: run the test suite locally before opening a PR.
 - Coverage should not decrease.
 
-<!-- TODO: add the exact test command for this repo -->
+Run the full test suite with:
+
+```bash
+bazel test //src:all //src/quipper:all
+```
 
 ## Review process
 
