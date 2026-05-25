@@ -21,7 +21,7 @@ sudo apt-get -y install g++ git libelf-dev libssl-dev libcap-dev linux-tools-$(u
 # https://docs.bazel.build/versions/master/install.html
 # (Bazelisk is the recommended approach)
 
-# Generate version information
+# Generate version information (writes src/version.h)
 ./scripts/generate-version.sh
 
 # Build the main binary and all targets
@@ -32,7 +32,7 @@ The compiled `perf_to_profile` binary will be available under `bazel-bin/src/per
 
 ## Branch naming
 
-Same as human contributors: `<type>/<short-description>` (e.g. `fix/off-by-one-in-pipeline`).
+Same as human contributors: `<type>/<short-description>` (e.g. `fix/perf-data-parser-overflow`).
 
 ## Coding standards
 
